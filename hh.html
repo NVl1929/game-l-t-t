@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Game Lật Thẻ Nâng Cấp</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+    }
+    h1 { margin-top: 20px; }
+    .score-board {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #2e3a59;
+      color: white;
+      cursor: pointer;
+    }
+    .game-board {
+      width: fit-content;
+      margin: 20px auto;
+      display: grid;
+      gap: 10px;
+      justify-content: center;
+    }
+    .card {
+      width: 80px;
+      height: 80px;
+      background-color: #2e3a59;
+      color: white;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 8px;
+      user-select: none;
+      transition: 0.3s;
+    }
+    .card.flipped {
+      background-color: #fff;
+      color: #2e3a59;
+      border: 2px solid #2e3a59;
+    }
+    #message {
+      font-size: 22px;
+      color: green;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 Game Lật Thẻ Nâng Cấp</h1>
+
+  <div class="score-board">
+    ✅ Điểm: <span id="score">0</span> |
+    ❌ Sai: <span id="mistakes">0</span> |
+    ⏱️ Thời gian: <span id="time">0</span> giây
+  </div>
+
+  <button onclick="restartGame()">🔁 Chơi lại</button>
+  <button onclick="toggleDifficulty()">🧠 Đổi chế độ: <span id="mode">Dễ</span></button>
+
+  <div class="game-board" id="gameBoard"></div>
+  <div id="message"></div>
+
+  <!-- Âm thanh -->
+  <audio id="sound-correct" src="https://cdn.pixabay.com/audio/2022/03/15/audio_45b0f5f814.mp3"></audio>
+  <audio id="sound-wrong" src="https://cdn.pixabay.com/audio/2022/03/15/audio_05e1c80e42.mp3"></audio>
+  <audio id="sound-win" src="https://cdn.pixabay.com/audio/2022/03/15/audio_8931cddc87.mp3"></audio>
+
+  <script>
+    const emojiEasy = ['🍎','🍌','🍇','🍉','🍓','🍍','🥝','🍒'];
+    const emojiHard = ['🐶','🐱','🐭','🐰','🦊','🐻','🐼','🦁','🐷','🐸','🐵','🐔'];
+    let emojis = [...emojiEasy];
+    let mode = 'easy';
+
+    let flippedCards = [], lockBoard = false;
+    let score = 0, mistakes = 0, time = 0, timer;
+    let matchedCount = 0;
+
+    const board = document.getElementById('gameBoard');
+    const scoreEl = document.getElementById('score');
+    const mistakesEl = document.getElementById('mistakes');
+    const timeEl = document.getElementById('time');
+    const messageEl = document.getElementById('message');
+    const soundCorrect = document.getElementById('sound-correct');
+    const soundWrong = document.getElementById('sound-wrong');
+    const soundWin = document.getElementById('sound-win');
+    const modeEl = document.getElementById('mode');
+
+    function shuffle(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function createCard(symbol) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.symbol = symbol;
+      card.textContent = '';
+      card.addEventListener('click', () => {
+        if (lockBoard || card.classList.contains('flipped')) return;
+
+        card.classList.add('flipped');
+        card.textContent = symbol;
+        flippedCards.push(card);
+
+        if (flippedCards.length === 2) checkMatch();
+      });
+      return card;
+    }
+
+    function checkMatch() {
+      const [c1, c2] = flippedCards;
+      if (c1.dataset.symbol === c2.dataset.symbol) {
+        score++;
+        matchedCount++;
+        soundCorrect.play();
+        flippedCards = [];
+        checkWin();
+      } else {
+        lockBoard = true;
+        mistakes++;
+        soundWrong.play();
+        setTimeout(() => {
+          c1.classList.remove('flipped');
+          c2.classList.remove('flipped');
+          c1.textContent = '';
+          c2.textContent = '';
+          flippedCards = [];
+          lockBoard = false;
+        }, 800);
+      }
+      updateUI();
+    }
+
+    function updateUI() {
+      scoreEl.textContent = score;
+      mistakesEl.textContent = mistakes;
+    }
+
+    function checkWin() {
+      const totalPairs = emojis.length;
+      if (matchedCount === totalPairs) {
+        clearInterval(timer);
+        soundWin.play();
+        messageEl.textContent = `🎉 Bạn đã thắng sau ${time} giây!`;
+      }
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      time = 0;
+      timeEl.textContent = time;
+      timer = setInterval(() => {
+        time++;
+        timeEl.textContent = time;
+      }, 1000);
+    }
+
+    function initGame() {
+      board.innerHTML = '';
+      const shuffled = shuffle([...emojis, ...emojis]);
+      board.style.gridTemplateColumns = `repeat(${Math.sqrt(shuffled.length)}, 90px)`;
+
+      flippedCards = [];
+      lockBoard = false;
+      score = 0;
+      mistakes = 0;
+      matchedCount = 0;
+      messageEl.textContent = '';
+      updateUI();
+      startTimer();
+
+      shuffled.forEach(symbol => {
+        board.appendChild(createCard(symbol));
+      });
+    }
+
+    function restartGame() {
+      initGame();
+    }
+
+    function toggleDifficulty() {
+      mode = mode === 'easy' ? 'hard' : 'easy';
+      emojis = mode === 'easy' ? [...emojiEasy] : [...emojiHard];
+      modeEl.textContent = mode === 'easy' ? 'Dễ' : 'Khó';
+      restartGame();
+    }
+
+    initGame();
+  </script>
+</body>
+</html>

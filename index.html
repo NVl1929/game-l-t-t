@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  
+</head>
+<body>
+    <script>
+        // 1. Tạo một mảng các user objects, mỗi object có thuộc tính id và tên
+let users = [
+  { id: 1, ten: "An" },
+  { id: 2, ten: "Bình" },
+  { id: 3, ten: "Cường" }
+];
+
+// 2. Thêm một object mới vào mảng
+users.push({ id: 4, ten: "Dũng" });
+
+// Cập nhật tên của một user dựa trên id
+function capNhatTen(id, tenMoi) {
+  const user = users.find(u => u.id === id);
+  if (user) {
+    user.ten = tenMoi;
+  }
+}
+capNhatTen(2, "Bảo");
+
+// Xóa một user khỏi mảng dựa trên id
+function xoaUser(id) {
+  users = users.filter(u => u.id !== id);
+}
+xoaUser(1);
+
+console.log("Danh sách users:", users);
+
+// 3. Tạo một đối tượng đại diện cho một người
+let nguoi = {
+  ten: "Lan",
+  tuoi: 25,
+  thanhPho: "Hà Nội"
+};
+
+// Thêm thuộc tính email vào object
+nguoi.email = "lan@example.com";
+
+// Xóa thuộc tính tuổi
+delete nguoi.tuoi;
+
+console.log("Thông tin người:", nguoi);
+
+    </script>
+    <main>
+      <a href="lol.html">hhh</a>
+      <a href="hh.html">hh</a>
+    </main>
+</body>
+</html>

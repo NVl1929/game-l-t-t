@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game Lật Thẻ - Có Tính Điểm</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+    }
+
+    h1 {
+      margin-top: 30px;
+    }
+
+    .score-board {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #2e3a59;
+      color: white;
+      cursor: pointer;
+    }
+
+    .game-board {
+      width: 400px;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: repeat(4, 90px);
+      gap: 10px;
+      padding: 20px;
+    }
+
+    .card {
+      width: 80px;
+      height: 80px;
+      background-color: #2e3a59;
+      color: white;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 8px;
+      user-select: none;
+      transition: 0.3s;
+    }
+
+    .card.flipped {
+      background-color: #fff;
+      color: #2e3a59;
+      border: 2px solid #2e3a59;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 Game Lật Thẻ</h1>
+
+  <div class="score-board">
+    ✅ Điểm: <span id="score">0</span> |
+    ❌ Sai: <span id="mistakes">0</span>
+  </div>
+
+  <button onclick="restartGame()">🔁 Chơi lại</button>
+
+  <div class="game-board" id="gameBoard"></div>
+
+  <script>
+    const cardSymbols = ['🍎', '🍌', '🍇', '🍉', '🍓', '🍍', '🥝', '🍒'];
+    let gameCards = [];
+    let flippedCards = [];
+    let lockBoard = false;
+    let score = 0;
+    let mistakes = 0;
+
+    const gameBoard = document.getElementById('gameBoard');
+    const scoreDisplay = document.getElementById('score');
+    const mistakeDisplay = document.getElementById('mistakes');
+
+    function shuffleCards() {
+      return [...cardSymbols, ...cardSymbols].sort(() => 0.5 - Math.random());
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = score;
+      mistakeDisplay.textContent = mistakes;
+    }
+
+    function createCard(value) {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.dataset.value = value;
+      card.textContent = '';
+
+      card.addEventListener('click', () => {
+        if (lockBoard || card.classList.contains('flipped')) return;
+
+        card.classList.add('flipped');
+        card.textContent = value;
+        flippedCards.push(card);
+
+        if (flippedCards.length === 2) {
+          checkMatch();
+        }
+      });
+
+      return card;
+    }
+
+    function checkMatch() {
+      const [card1, card2] = flippedCards;
+      const isMatch = card1.dataset.value === card2.dataset.value;
+
+      if (isMatch) {
+        score++;
+        updateScore();
+        flippedCards = [];
+      } else {
+        lockBoard = true;
+        mistakes++;
+        updateScore();
+        setTimeout(() => {
+          card1.classList.remove('flipped');
+          card2.classList.remove('flipped');
+          card1.textContent = '';
+          card2.textContent = '';
+          lockBoard = false;
+          flippedCards = [];
+        }, 800);
+      }
+    }
+
+    function initGame() {
+      gameBoard.innerHTML = '';
+      score = 0;
+      mistakes = 0;
+      updateScore();
+      gameCards = shuffleCards();
+
+      gameCards.forEach(value => {
+        const card = createCard(value);
+        gameBoard.appendChild(card);
+      });
+    }
+
+    function restartGame() {
+      initGame();
+    }
+
+    initGame();
+  </script>
+</body>
+</html>
